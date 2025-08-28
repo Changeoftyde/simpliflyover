@@ -72,37 +72,51 @@ let allarticles = [];
 
 document.getElementById("go").addEventListener("click", function() {
   // Grab newsletter text
-  let mon = document.getElementById("monday").value;
-  let tue = document.getElementById("tuesday").value;
-  let wed = document.getElementById("wednesday").value;
-  let thu = document.getElementById("thursday").value;
+  let daysText = [
+    document.getElementById("monday").value,
+    document.getElementById("tuesday").value,
+    document.getElementById("wednesday").value,
+    document.getElementById("thursday").value
+  ];
 
   // Hide first screen, show second screen
   document.getElementById("s1").classList.add("hidden");
   document.getElementById("s2").classList.remove("hidden");
 
-  // Collect all articles
-  allarticles = [];
-  [mon, tue, wed, thu].forEach(text => {
-    let articles = text.split(/\n\s*\n/).map(a => a.trim()).filter(a => a.length > 0);
-    allarticles.push(...articles);
-  });
+  // Split each day's text into articles
+  let dayArticles = daysText.map(text =>
+    text.split(/\n\s*\n/).map(a => a.trim()).filter(a => a.length > 0)
+  );
 
+  // Interleave articles
+  allarticles = [];
+  let maxArticles = Math.max(...dayArticles.map(arr => arr.length));
+  for (let i = 0; i < maxArticles; i++) {
+    for (let d = 0; d < dayArticles.length; d++) {
+      if (dayArticles[d][i]) {
+        allarticles.push({ text: dayArticles[d][i], checked: true });
+      }
+    }
+  }
+
+  // Render articles with checkboxes
   let container = document.getElementById("articles");
   container.innerHTML = "";
 
-  // Create p + checkbox for each article
   allarticles.forEach((article, index) => {
     let div = document.createElement("div");
     div.classList.add("article-container");
 
     let checkbox = document.createElement("input");
     checkbox.type = "checkbox";
-    checkbox.checked = true;
+    checkbox.checked = article.checked;
     checkbox.id = "chk_" + index;
+    checkbox.addEventListener("change", function() {
+      article.checked = this.checked;
+    });
 
     let p = document.createElement("p");
-    p.textContent = article;
+    p.textContent = article.text;
 
     div.appendChild(checkbox);
     div.appendChild(p);
@@ -114,17 +128,16 @@ document.getElementById("export").addEventListener("click", function() {
   const { jsPDF } = window.jspdf;
   let doc = new jsPDF();
   let y = 10;
-  const pageHeight = 297; // A4 page height in mm
+  const pageHeight = 297;
 
-  allarticles.forEach((article, i) => {
-    let checkbox = document.getElementById("chk_" + i);
-    if (!checkbox) return;
+  // Sort articles: all black (checked) first, then blue (unchecked)
+  let sortedArticles = [...allarticles].sort((a, b) => b.checked - a.checked);
 
-    let checked = checkbox.checked;
-    doc.setTextColor(checked ? 0 : 0, checked ? 0 : 0, checked ? 0 : 255); // black if checked, blue if unchecked
+  sortedArticles.forEach(article => {
+    doc.setTextColor(article.checked ? 0 : 0, article.checked ? 0 : 0, article.checked ? 0 : 255);
+    let splitText = doc.splitTextToSize(article.text, 180);
 
-    let splitText = doc.splitTextToSize(article, 180);
-    if (y + splitText.length * 10 > pageHeight - 10) { // check if new page needed
+    if (y + splitText.length * 10 > pageHeight - 10) {
       doc.addPage();
       y = 10;
     }
