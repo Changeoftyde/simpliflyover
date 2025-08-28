@@ -150,24 +150,31 @@ document.getElementById("export").addEventListener("click", function() {
   let doc = new jsPDF();
   let y = 10;
   const pageHeight = 297;
+  const lineHeight = 7; // spacing between lines
 
   let sortedArticles = [...allarticles].sort((a, b) => b.checked - a.checked);
 
   sortedArticles.forEach(article => {
     doc.setTextColor(article.checked ? 0 : 0, article.checked ? 0 : 0, article.checked ? 0 : 255);
-    let splitText = doc.splitTextToSize(article.text, 180);
 
-    if (y + splitText.length * 10 > pageHeight - 10) {
-      doc.addPage();
-      y = 10;
-    }
+    // Split by line breaks first, then wrap each line
+    let lines = article.text.split('\n').flatMap(line => doc.splitTextToSize(line, 180));
 
-    doc.text(splitText, 10, y);
-    y += splitText.length * 10 + 5;
+    lines.forEach(line => {
+      if (y + lineHeight > pageHeight - 10) {
+        doc.addPage();
+        y = 10;
+      }
+      doc.text(line, 10, y);
+      y += lineHeight;
+    });
+
+    y += lineHeight; // extra space between articles
   });
 
   doc.save("flyover_articles.pdf");
 });
+
 </script>
 </body>
 </html>
