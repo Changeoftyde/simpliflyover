@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -107,18 +107,15 @@ document.getElementById("go").addEventListener("click", function() {
   document.getElementById("s1").classList.add("hidden");
   document.getElementById("s2").classList.remove("hidden");
 
+  // Split each day's text by double newlines
   let dayArticles = daysText.map(text =>
     text.split(/\n\s*\n/).map(a => a.trim()).filter(a => a.length > 0)
   );
 
+  // Flatten articles in day order: all of Monday, then Tuesday, etc.
   allarticles = [];
-  let maxArticles = Math.max(...dayArticles.map(arr => arr.length));
-  for (let i = 0; i < maxArticles; i++) {
-    for (let d = 0; d < dayArticles.length; d++) {
-      if (dayArticles[d][i]) {
-        allarticles.push({ text: dayArticles[d][i], checked: true });
-      }
-    }
+  for (let d = 0; d < dayArticles.length; d++) {
+    dayArticles[d].forEach(a => allarticles.push({ text: a, checked: true }));
   }
 
   let container = document.getElementById("articles");
@@ -148,16 +145,14 @@ document.getElementById("go").addEventListener("click", function() {
 document.getElementById("export").addEventListener("click", function() {
   const { jsPDF } = window.jspdf;
   let doc = new jsPDF();
+  doc.setFontSize(6); // really small font
   let y = 10;
   const pageHeight = 297;
-  const lineHeight = 7; // spacing between lines
+  const lineHeight = 4; // small spacing
 
-  let sortedArticles = [...allarticles].sort((a, b) => b.checked - a.checked);
-
-  sortedArticles.forEach(article => {
+  allarticles.forEach(article => {
     doc.setTextColor(article.checked ? 0 : 0, article.checked ? 0 : 0, article.checked ? 0 : 255);
 
-    // Split by line breaks first, then wrap each line
     let lines = article.text.split('\n').flatMap(line => doc.splitTextToSize(line, 180));
 
     lines.forEach(line => {
@@ -174,7 +169,6 @@ document.getElementById("export").addEventListener("click", function() {
 
   doc.save("flyover_articles.pdf");
 });
-
 </script>
 </body>
 </html>
