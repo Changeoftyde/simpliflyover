@@ -44,7 +44,7 @@ textarea {
   color: white;
   font-size: 5dvh;
   font-weight: bold;
-  background-color: #000000; /* swapped from blue to black */
+  background-color: #007bff;
   border: none;
   cursor: pointer;
   box-shadow: 0 4px 6px rgba(0,0,0,0.2);
@@ -53,7 +53,7 @@ textarea {
 }
 
 #go:hover, #export:hover {
-  background-color: #007bff; /* swapped from hover darker blue to lighter blue */
+  background-color: #0056b3;
   transform: translateX(-50%) scale(1.05);
 }
 
@@ -61,7 +61,7 @@ textarea {
   display: flex;
   align-items: center;
   margin-bottom: 1.5dvh;
-  background-color: #000000; /* swapped from #f0f8ff to black */
+  background-color: #f0f8ff;
   padding: 1dvh;
   border-radius: 1dvh;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -71,7 +71,7 @@ textarea {
   margin: 0;
   flex: 1;
   font-size: 2.2dvh;
-  color: #007bff; /* swapped from black to blue */
+  color: #333;
 }
 
 .hidden {
@@ -131,15 +131,11 @@ document.getElementById("go").addEventListener("click", function() {
     checkbox.id = "chk_" + index;
     checkbox.addEventListener("change", function() {
       article.checked = this.checked;
-
-      // Swap text color in UI
-      div.querySelector("p").style.color = article.checked ? "#0000ff" : "#000000"; 
-      div.style.backgroundColor = article.checked ? "#000000" : "#f0f8ff";
     });
 
     let p = document.createElement("p");
     p.textContent = article.text;
-    p.style.color = "#0000ff"; // default swapped color for checked
+
     div.appendChild(checkbox);
     div.appendChild(p);
     container.appendChild(div);
@@ -155,8 +151,12 @@ document.getElementById("export").addEventListener("click", function() {
   const lineHeight = 3; // small spacing
 
   allarticles.forEach(article => {
-    // Swap black ↔ blue
-    doc.setTextColor(article.checked ? 0 : 0, article.checked ? 0 : 0, article.checked ? 255 : 0);
+    // SWAPPED: checked = blue, unchecked = black
+    if (article.checked) {
+      doc.setTextColor(0, 0, 255); // blue
+    } else {
+      doc.setTextColor(0, 0, 0);   // black
+    }
 
     let lines = article.text.split('\n').flatMap(line => doc.splitTextToSize(line, 180));
 
@@ -177,4 +177,3 @@ document.getElementById("export").addEventListener("click", function() {
 </script>
 </body>
 </html>
-
