@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  .screen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    padding: 2dvh;
+    box-sizing: border-box;
+  }
+
+  #go, #export {
+    border-radius: 3dvh;
+    width: 35dvh;
+    height: 10dvh;
+    position: fixed;
+    transform: translateX(-50%);
+    left: 50%;
+    bottom: 1dvh;
+    color: black;
+    font-size: 6dvh;
+    z-index: 100;
+  }
+
+  textarea {
+    width: 45%;
+    height: 40%;
+    margin: 1%;
+    outline: 1px solid black;
+  }
+
+  #s2 {
+    overflow-y: auto;
+    padding-bottom: 15dvh;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .article-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1dvh;
+  }
+
+  .article-container p {
+    margin: 0;
+    flex: 1;
+  }
+</style>
+</head>
+<body>
+  <div class="screen" id="s1">
+    <textarea placeholder="Monday Newsletter" id="monday"></textarea>
+    <textarea placeholder="Tuesday Newsletter" id="tuesday"></textarea>
+    <textarea placeholder="Wednesday Newsletter" id="wednesday"></textarea>
+    <textarea placeholder="Thursday Newsletter" id="thursday"></textarea>
+    <button id="go">Simplify</button>
+  </div>
+
+  <div class="screen hidden" id="s2">
+    <div id="articles"></div>
+    <button id="export">Export PDF</button>
+  </div>
+
+<script>
+let allarticles = [];
+
+document.getElementById("go").addEventListener("click", function() {
+  // Grab newsletter text
+  let mon = document.getElementById("monday").value;
+  let tue = document.getElementById("tuesday").value;
+  let wed = document.getElementById("wednesday").value;
+  let thu = document.getElementById("thursday").value;
+
+  // Hide first screen, show second screen
+  document.getElementById("s1").classList.add("hidden");
+  document.getElementById("s2").classList.remove("hidden");
+
+  // Collect all articles
+  allarticles = [];
+  [mon, tue, wed, thu].forEach(text => {
+    let articles = text.split(/\n\s*\n/).map(a => a.trim()).filter(a => a.length > 0);
+    allarticles.push(...articles);
+  });
+
+  let container = document.getElementById("articles");
+  container.innerHTML = "";
+
+  // Create p + checkbox for each article
+  allarticles.forEach((article, index) => {
+    let div = document.createElement("div");
+    div.classList.add("article-container");
+
+    let checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = true;
+    checkbox.id = "chk_" + index;
+
+    let p = document.createElement("p");
+    p.textContent = article;
+
+    div.appendChild(checkbox);
+    div.appendChild(p);
+    container.appendChild(div);
+  });
+});
+
+document.getElementById("export").addEventListener("click", function() {
+  const { jsPDF } = window.jspdf;
+  let doc = new jsPDF();
+  let y = 10;
+  const pageHeight = 297; // A4 page height in mm
+
+  allarticles.forEach((article, i) => {
+    let checkbox = document.getElementById("chk_" + i);
+    if (!checkbox) return;
+
+    let checked = checkbox.checked;
+    doc.setTextColor(checked ? 0 : 0, checked ? 0 : 0, checked ? 0 : 255); // black if checked, blue if unchecked
+
+    let splitText = doc.splitTextToSize(article, 180);
+    if (y + splitText.length * 10 > pageHeight - 10) { // check if new page needed
+      doc.addPage();
+      y = 10;
+    }
+
+    doc.text(splitText, 10, y);
+    y += splitText.length * 10 + 5;
+  });
+
+  doc.save("flyover_articles.pdf");
+});
+</script>
+</body>
+</html>
